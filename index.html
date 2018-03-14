@@ -1,0 +1,112 @@
+<html ng-app="GithubApiApp">
+    <head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    </head>
+    <body>
+        <div ng-controller="GithubApiCtrl">
+            <div class="row">
+                <span class="col-md-5"></span>
+                <h2 class="col-md-2">Github Search</h2>
+                <span class="col-md-5"></span>
+            </div>
+            <div class="row">
+                <form id="search_form0" name="search_form" ng-submit="search(user.login)">
+                    <span class="col-md-2"></span>
+                    <h2 class="col-md-8"><input type="text" id="search0" name="search" ng-model="user.login" style="width: 100%;"></h2>
+                    <span class="col-md-2"></span>
+                </form>
+            </div>
+            <div class="row">
+                <span class="col-md-2"></span>
+                <span class="col-md-3" style="text-align: left;">
+                    <div>
+                        <a href="{{user.html_url}}" target="_blank" ng-show="user.html_url != ''">
+                            <img src="{{user.avatar_url}}" width="256px" height="256px" ng-show="user.avatar_url != ''">
+                        </a>
+                    </div>
+                    <div><a href="{{user.html_url}}" target="_blank" ng-show="user.html_url != ''">{{user.login}}</a></div>
+                </span>
+                <span class="col-md-5">
+                        <div class="row">
+                            <div class="col-md-12" ng-show="repos.length != 0">
+                                <h4>{{user.login}}'s repos</h4>
+                            </div>
+                            <div ng-repeat="repo in repos">
+                                <a href="{{repo.url}}">{{repo.name}}</a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12" ng-show="gists.length != 0">
+                                <h4>{{user.login}}'s gists</h4>
+                            </div>
+                            <div ng-repeat="gist in gists">
+                                <a href="{{gist.url}}">{{gist.id}}></a>
+                            </div>
+                        </div>
+                </span>
+                <span class="col-md-2"></span>
+            </div>
+        </div>
+
+        <script >
+        var app = angular.module("GithubApiApp", []);
+
+        app.controller("GithubApiCtrl", function($scope, $http) {
+            $scope.user = {
+                login: '',
+                avatar_url: '',
+                html_url: ''
+            };
+            $scope.gists = [];
+            $scope.repos = [];
+
+            $scope.search = function(value) {
+                get_user($scope.user);
+                get_repos($scope.user);
+                get_gists($scope.user);
+            }
+
+            function get_user(user) {
+                $http.get('https://api.github.com/users/' + user.login)
+                    .then(function(response) {
+                        $scope.user = response.data;
+                    }
+                    , function(data, status, headers, config) {
+                        $scope.user = {
+                            login: 'stalniy',
+                            avatar_url: '',
+                            html_url: ''
+                        };
+                        deferred.resolve(JSON.parse('{"response": {"method": "PUT", "result": "error", "status": "' + status + '"}}'));
+                    })
+                ;
+            }
+
+            function get_repos(user) {
+                $http.get('https://api.github.com/users/' + user.login + '/repos')
+                    .then(function(response) {
+                        $scope.repos = response.data;
+                    }
+                    , function(data, status, headers, config) {
+                        $scope.repos = [];
+                        deferred.resolve(JSON.parse('{"response": {"method": "PUT", "result": "error", "status": "' + status + '"}}'));
+                    })
+                ;
+            }
+
+            function get_gists(user) {
+                $http.get('https://api.github.com/users/' + user.login + '/gists')
+                    .then(function(response) {
+                        $scope.gists = response.data;
+                    }
+                    , function(data, status, headers, config) {
+                        $scope.gists = [];
+                        deferred.resolve(JSON.parse('{"response": {"method": "PUT", "result": "error", "status": "' + status + '"}}'));
+                    })
+                ;
+            }
+        });
+        </script>
+    </body>
+</html>
